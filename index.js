@@ -25,29 +25,34 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
-    
+
     // Database collection
     const userCollection = client.db('eduLoopDb').collection('users');
     const classCollection = client.db('eduLoopDb').collection('classes');
     const feedbackCollection = client.db('eduLoopDb').collection('feedback');
 
     // Users related api
-    app.post('/users', async(req, res)=>{
+    app.post('/users', async (req, res) => {
       const user = req.body;
+      const query = { email: user.email }
+      const existingUser = await userCollection.findOne(query);
+      if (existingUser) {
+        return res.send({ massage: "users email already added", insertedId: null })
+      }
       const result = await userCollection.insertOne(user);
       res.send(result);
     })
 
     //Get all class
-    app.get('/classes', async(req, res)=>{
-        const result =await classCollection.find().toArray();
-        res.send(result);
+    app.get('/classes', async (req, res) => {
+      const result = await classCollection.find().toArray();
+      res.send(result);
     })
 
     // get feedback
-    app.get('/feedback', async(req, res)=>{
-        const result =await feedbackCollection.find().toArray();
-        res.send(result);
+    app.get('/feedback', async (req, res) => {
+      const result = await feedbackCollection.find().toArray();
+      res.send(result);
     })
 
 
@@ -65,10 +70,10 @@ run().catch(console.dir);
 
 
 
-app.get('/', (req, res)=>{
-    res.send('EduLoop Server is running');
+app.get('/', (req, res) => {
+  res.send('EduLoop Server is running');
 })
 
-app.listen(port,()=>{
-    console.log(`EduLoop is running on port: ${port}`);
+app.listen(port, () => {
+  console.log(`EduLoop is running on port: ${port}`);
 })
