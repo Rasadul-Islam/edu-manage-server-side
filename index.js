@@ -45,25 +45,35 @@ async function run() {
     const verifyToken = (req, res, next) => {
       console.log('inside verify token', req.headers.athorization);
       if (!req.headers.athorization) {
-        return res.status(401).send({ massage: 'forbidden access' });
+        return res.status(401).send({ massage: 'unauthorized access' });
       }
       const token = req.headers.athorization.split(' ')[1];
       jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
         if (err) {
-          return res.status(401).send({ massage: 'forbidden access' })
+          return res.status(401).send({ massage: 'unauthorized access' })
         }
         req.decoded = decoded;
         next();
       })
-
     }
 
+    // use verifyAdmin After verifyToken
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      const isAdmin = user?.role === 'admin';
+      if (!isAdmin) {
+        return res.status(403).send({ massage: 'forbidden access' });
+      }
+      next();
+    }
 
 
     // Users related api
 
     // get user info
-    app.get('/users', verifyToken, async (req, res) => {
+    app.get('/users', verifyToken, verifyAdmin, async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
@@ -71,7 +81,7 @@ async function run() {
     app.get('/users/admin/:email', verifyToken, async (req, res) => {
       const email = req.params.email;
       if (email !== req.decoded.email) {
-        return res.status(403).send({ massage: 'unauthorized access' })
+        return res.status(403).send({ massage: 'forbidden access' })
 
       }
       const query = { email: email };
@@ -96,7 +106,7 @@ async function run() {
     })
 
     // update user role
-    app.patch('/users/admin/:id', async (req, res) => {
+    app.patch('/users/admin/:id', verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
@@ -109,7 +119,7 @@ async function run() {
     })
 
     // delete use info
-    app.delete('/users/:id', async (req, res) => {
+    app.delete('/users/:id', verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
       const result = await userCollection.deleteOne(query);
