@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const cors = require('cors')
+const jwt =require('jsonwebtoken');
 require('dotenv').config()
 const port = process.env.PORT | 5000;
 
@@ -30,6 +31,14 @@ async function run() {
     const userCollection = client.db('eduLoopDb').collection('users');
     const classCollection = client.db('eduLoopDb').collection('classes');
     const feedbackCollection = client.db('eduLoopDb').collection('feedback');
+
+    // jwt related api
+    app.post('/jwt', async(req, res)=>{
+      const user=req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn:'1h' });
+        res.send({token});
+    })
 
     // Users related api
 
@@ -63,7 +72,7 @@ async function run() {
       const result = await userCollection.updateOne(filter, updateDoc);
       res.send(result);
     })
-    
+
     // delete use info
     app.delete('/users/:id', async (req, res) => {
       const id = req.params.id;
