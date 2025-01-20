@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const cors = require('cors')
-const jwt =require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 require('dotenv').config()
 const port = process.env.PORT | 5000;
 
@@ -33,17 +33,37 @@ async function run() {
     const feedbackCollection = client.db('eduLoopDb').collection('feedback');
 
     // jwt related api
-    app.post('/jwt', async(req, res)=>{
-      const user=req.body;
+    app.post('/jwt', async (req, res) => {
+      const user = req.body;
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn:'1h' });
-        res.send({token});
+        expiresIn: '1h'
+      });
+      res.send({ token });
     })
+
+    // middlewares
+    const verifyToken = (req, res, next) => {
+      console.log('inside verify token', req.headers.athorization);
+      if(!req.headers.athorization){
+        return res.status(401).send({massage:'forbidden access'});
+      }
+      const token= req.headers.athorization.split(' ')[1];
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded)=>{
+        if(err){
+          return res.status(401).send({massage:'forbidden access'})
+        }
+        req.decoded = decoded;
+        next();
+      })
+
+    }
+
+
 
     // Users related api
 
     // get user info
-    app.get('/users', async (req, res) => {
+    app.get('/users', verifyToken, async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
