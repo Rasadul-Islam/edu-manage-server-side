@@ -136,6 +136,17 @@ async function run() {
       const user = await userCollection.findOne(query);
       res.send(user);
     });
+    // Update User profile
+    app.patch("/users/:id", verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const updatedData = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = { $set: updatedData };
+    
+      const result = await userCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+    
     
 
 
