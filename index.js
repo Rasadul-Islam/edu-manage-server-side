@@ -43,7 +43,7 @@ async function run() {
 
     // middlewares
     const verifyToken = (req, res, next) => {
-      console.log('inside verify token', req.headers.athorization);
+      // console.log('inside verify token', req.headers.athorization);
       if (!req.headers.athorization) {
         return res.status(401).send({ massage: 'unauthorized access' });
       }
@@ -125,6 +125,19 @@ async function run() {
       const result = await userCollection.deleteOne(query);
       res.send(result);
     })
+
+    // Get user by email
+    app.get("/users/:email", verifyToken, async (req, res) => {
+      const email = req.params.email;
+      if (email !== req.decoded.email) {
+        return res.status(403).send({ message: "Forbidden access" });
+      }
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      res.send(user);
+    });
+    
+
 
 
 
