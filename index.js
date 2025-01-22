@@ -157,6 +157,13 @@ async function run() {
       const result = await classCollection.find().toArray();
       res.send(result);
     })
+    // Post classes
+    app.post('/classes', async (req, res, next)=>{
+      const classes =req.body;
+      classes.status ="pending";
+      const result = await classCollection.insertOne(classes);
+      res.send(result)
+    })
 
     // get feedback
     app.get('/feedback', async (req, res) => {
