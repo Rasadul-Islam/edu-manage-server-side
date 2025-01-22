@@ -171,6 +171,17 @@ async function run() {
       res.send(result);
     })
 
+    // Get classes by Email
+    app.get('/classes/:email',verifyToken, async(req, res)=>{
+      const email = req.params.email;
+      if (email !== req.decoded.email) {
+        return res.status(403).send({ message: "Forbidden access" });
+      }
+      const query = { email: email };
+      const classes= await classCollection.find(query).toArray();
+      res.send(classes);
+    })
+
 
 
     // Send a ping to confirm a successful connection
