@@ -25,7 +25,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     // Database collection
     const userCollection = client.db('eduLoopDb').collection('users');
@@ -142,44 +142,60 @@ async function run() {
       const updatedData = req.body;
       const filter = { _id: new ObjectId(id) };
       const updateDoc = { $set: updatedData };
-    
+
       const result = await userCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
-    
-    
 
 
 
 
+
+
+
+    // Class related api
     //Get all class
     app.get('/classes', async (req, res) => {
       const result = await classCollection.find().toArray();
       res.send(result);
     })
     // Post classes
-    app.post('/classes', async (req, res, next)=>{
-      const classes =req.body;
-      classes.status ="pending";
+    app.post('/classes', verifyToken, async (req, res, next) => {
+      const classes = req.body;
+      classes.status = "pending";
       const result = await classCollection.insertOne(classes);
       res.send(result)
     })
 
-    // get feedback
-    app.get('/feedback', async (req, res) => {
-      const result = await feedbackCollection.find().toArray();
-      res.send(result);
-    })
+
+
 
     // Get classes by Email
-    app.get('/classes/:email',verifyToken, async(req, res)=>{
+    app.get('/classes/:email', verifyToken, async (req, res) => {
       const email = req.params.email;
       if (email !== req.decoded.email) {
         return res.status(403).send({ message: "Forbidden access" });
       }
       const query = { email: email };
-      const classes= await classCollection.find(query).toArray();
+      const classes = await classCollection.find(query).toArray();
       res.send(classes);
+    })
+    // Delete a class by teacher
+    app.delete("/classes/:id", verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await classCollection.deleteOne(query);
+      res.send(result);
+    });
+    
+
+
+
+
+    // get feedback
+    app.get('/feedback', async (req, res) => {
+      const result = await feedbackCollection.find().toArray();
+      res.send(result);
     })
 
 
