@@ -146,6 +146,18 @@ async function run() {
       const result = await userCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
+    // Update Classes by id
+    app.patch("/classes/:id",verifyToken, async (req, res, next) => {
+      const id = req.params.id;
+      const updatedClass = req.body;
+      if (updatedClass._id) {
+        delete updatedClass._id;
+      }
+      const filter = { _id: new ObjectId(id) };
+      const updateData = { $set: updatedClass };
+      const result = await classCollection.updateOne(filter, updateData);
+      res.send(result);
+    });
 
 
 
@@ -187,6 +199,14 @@ async function run() {
       const result = await classCollection.deleteOne(query);
       res.send(result);
     });
+
+    app.get("/updateClasses/:id",verifyToken, async(req,res, next)=>{
+      const id =req.params.id;
+      const query={_id: new ObjectId(id)};
+      const result = await classCollection.findOne(query);
+      res.send(result);
+    })
+
     
 
 
