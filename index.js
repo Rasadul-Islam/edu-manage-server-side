@@ -175,6 +175,13 @@ async function run() {
       const result = await classCollection.find().toArray();
       res.send(result);
     })
+    // Get classes filter enrolment
+    app.get('/populerClasses', async (req, res) => {
+      const filter = {status:"approved"};
+      const sortClass ={enrollmentCount:-1};
+      const populerClass = await classCollection.find(filter).sort(sortClass).limit(6).toArray();
+      res.send(populerClass);
+  });
     // Post classes
     app.post('/classes', verifyToken, async (req, res) => {
       const classes = req.body;
