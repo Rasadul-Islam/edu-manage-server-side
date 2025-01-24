@@ -30,6 +30,7 @@ async function run() {
     // Database collection
     const userCollection = client.db('eduLoopDb').collection('users');
     const classCollection = client.db('eduLoopDb').collection('classes');
+    const teacherRequestsCollection = client.db("eduLoopDb").collection("teacherRequests");
     const feedbackCollection = client.db('eduLoopDb').collection('feedback');
 
     // jwt related api
@@ -146,18 +147,21 @@ async function run() {
       const result = await userCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
-    // Update Classes by id
-    app.patch("/classes/:id",verifyToken, async (req, res, next) => {
-      const id = req.params.id;
-      const updatedClass = req.body;
-      if (updatedClass._id) {
-        delete updatedClass._id;
-      }
-      const filter = { _id: new ObjectId(id) };
-      const updateData = { $set: updatedClass };
-      const result = await classCollection.updateOne(filter, updateData);
+
+
+
+
+    // Teacher Related Api
+
+    // Post teacher request
+    app.post("/teacherRequests", verifyToken, async (req, res) => {
+      const request = req.body;
+      const result = await teacherRequestsCollection.insertOne(request);
       res.send(result);
-    });
+  });
+    
+
+  
 
 
 
@@ -172,16 +176,12 @@ async function run() {
       res.send(result);
     })
     // Post classes
-    app.post('/classes', verifyToken, async (req, res, next) => {
+    app.post('/classes', verifyToken, async (req, res) => {
       const classes = req.body;
       classes.status = "pending";
       const result = await classCollection.insertOne(classes);
       res.send(result)
     })
-
-
-
-
     // Get classes by Email
     app.get('/classes/:email', verifyToken, async (req, res) => {
       const email = req.params.email;
@@ -199,13 +199,25 @@ async function run() {
       const result = await classCollection.deleteOne(query);
       res.send(result);
     });
-
+    // Get Classes by id
     app.get("/updateClasses/:id",verifyToken, async(req,res, next)=>{
       const id =req.params.id;
       const query={_id: new ObjectId(id)};
       const result = await classCollection.findOne(query);
       res.send(result);
     })
+    // Update Classes by id
+    app.patch("/classes/:id",verifyToken, async (req, res, next) => {
+      const id = req.params.id;
+      const updatedClass = req.body;
+      if (updatedClass._id) {
+        delete updatedClass._id;
+      }
+      const filter = { _id: new ObjectId(id) };
+      const updateData = { $set: updatedClass };
+      const result = await classCollection.updateOne(filter, updateData);
+      res.send(result);
+    });
 
     
 
