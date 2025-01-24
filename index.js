@@ -158,10 +158,27 @@ async function run() {
       const request = req.body;
       const result = await teacherRequestsCollection.insertOne(request);
       res.send(result);
-  });
-    
+    });
+    // get teacher request
+    app.get('/teacherRequests', verifyToken, async (req, res) => {
+      const requests = await teacherRequestsCollection.find().toArray();
+      res.send(requests);
+    });
+    // update approve teacher request
+    app.patch('/teacher/approver/:id', verifyToken, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: 'approved'
+        }
+      }
+      const result = await teacherRequestsCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    })
 
-  
+
+
 
 
 
@@ -177,11 +194,11 @@ async function run() {
     })
     // Get classes filter enrolment
     app.get('/populerClasses', async (req, res) => {
-      const filter = {status:"approved"};
-      const sortClass ={enrollmentCount:-1};
+      const filter = { status: "approved" };
+      const sortClass = { enrollmentCount: -1 };
       const populerClass = await classCollection.find(filter).sort(sortClass).limit(6).toArray();
       res.send(populerClass);
-  });
+    });
     // Post classes
     app.post('/classes', verifyToken, async (req, res) => {
       const classes = req.body;
@@ -207,14 +224,14 @@ async function run() {
       res.send(result);
     });
     // Get Classes by id
-    app.get("/updateClasses/:id",verifyToken, async(req,res, next)=>{
-      const id =req.params.id;
-      const query={_id: new ObjectId(id)};
+    app.get("/updateClasses/:id", verifyToken, async (req, res, next) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
       const result = await classCollection.findOne(query);
       res.send(result);
     })
     // Update Classes by id
-    app.patch("/classes/:id",verifyToken, async (req, res, next) => {
+    app.patch("/classes/:id", verifyToken, async (req, res, next) => {
       const id = req.params.id;
       const updatedClass = req.body;
       if (updatedClass._id) {
@@ -226,7 +243,7 @@ async function run() {
       res.send(result);
     });
 
-    
+
 
 
 
