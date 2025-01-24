@@ -173,7 +173,7 @@ async function run() {
           status: 'accepted'
         }
       }
-      // Update user role to "teacher"
+      // Update status and user role to "teacher"
       const teacherRequest = await teacherRequestsCollection.findOne(filter);
       if (teacherRequest) {
         await userCollection.updateOne(
@@ -184,6 +184,19 @@ async function run() {
       const result = await teacherRequestsCollection.updateOne(filter, updateDoc);
       res.send(result);
     })
+    // Reject status
+    app.patch('/teacher/reject/:id', verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: 'rejected',
+        },
+      };
+      const result = await teacherRequestsCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+    
 
 
 
