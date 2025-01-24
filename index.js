@@ -220,6 +220,12 @@ async function run() {
       const populerClass = await classCollection.find(filter).sort(sortClass).limit(6).toArray();
       res.send(populerClass);
     });
+    // Get All classes which approve
+    app.get('/allClasses', async (req, res) => {
+      const filter = { status: "approved" };
+      const allClass = await classCollection.find(filter).toArray();
+      res.send(allClass);
+    });
     // Post classes
     app.post('/classes', verifyToken, async (req, res) => {
       const classes = req.body;
