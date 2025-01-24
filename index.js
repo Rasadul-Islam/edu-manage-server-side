@@ -164,14 +164,22 @@ async function run() {
       const requests = await teacherRequestsCollection.find().toArray();
       res.send(requests);
     });
-    // update approve teacher request
+    // update accepted teacher request and change role
     app.patch('/teacher/approver/:id', verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
         $set: {
-          status: 'approved'
+          status: 'accepted'
         }
+      }
+      // Update user role to "teacher"
+      const teacherRequest = await teacherRequestsCollection.findOne(filter);
+      if (teacherRequest) {
+        await userCollection.updateOne(
+          { email: teacherRequest.email },
+          { $set: { role: 'teacher' } }
+        );
       }
       const result = await teacherRequestsCollection.updateOne(filter, updateDoc);
       res.send(result);
