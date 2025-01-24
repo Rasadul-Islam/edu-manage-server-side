@@ -209,7 +209,7 @@ async function run() {
 
     // Class related api
     //Get all class
-    app.get('/classes', async (req, res) => {
+    app.get('/classes',verifyToken, async (req, res) => {
       const result = await classCollection.find().toArray();
       res.send(result);
     })
@@ -263,6 +263,17 @@ async function run() {
       const result = await classCollection.updateOne(filter, updateData);
       res.send(result);
     });
+    // update approve status
+    app.patch('/classes/approve/:id', verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: { status: "approved" },
+      };
+      const result = await classCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+    
 
 
 
