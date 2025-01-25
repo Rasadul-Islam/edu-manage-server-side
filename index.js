@@ -31,6 +31,8 @@ async function run() {
     const userCollection = client.db('eduLoopDb').collection('users');
     const classCollection = client.db('eduLoopDb').collection('classes');
     const teacherRequestsCollection = client.db("eduLoopDb").collection("teacherRequests");
+    const assignmentCollection = client.db("eduLoopDb").collection("assignment");
+    const submissionCollection = client.db("eduLoopDb").collection("submission");
     const feedbackCollection = client.db('eduLoopDb').collection('feedback');
 
     // jwt related api
@@ -291,13 +293,27 @@ async function run() {
     });
 
 
-
-// ------------- Student related api--------------------
+// enroll class details api
     app.get('/enrollClass/:id', async (req, res) => {
       const { id } = req.params;
       const query={ _id: new ObjectId(id) };
       const classDetails = await classCollection.findOne(query);
       res.send(classDetails);
+    });
+// teacher see class details by id
+    app.get('/classDetails/:id', verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const classDetails = await classCollection.findOne({ _id: new ObjectId(id) });
+      const assignments = await assignmentCollection.find({ classId: id }).toArray();
+      const totalSubmissions = await submissionCollection.countDocuments({ classId: id });
+    
+      res.send({ classDetails, assignments, totalSubmissions });
+    });
+    // Post assignment by teacher
+    app.post('/assignments', verifyToken, async (req, res) => {
+      const assignment = req.body;
+      const result = await assignmentCollection.insertOne(assignment);
+      res.send(result);
     });
     
     
