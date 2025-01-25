@@ -289,6 +289,17 @@ async function run() {
       const result = await classCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
+
+
+
+// ------------- Student related api--------------------
+    app.get('/enrollClass/:id', async (req, res) => {
+      const { id } = req.params;
+      const query={ _id: new ObjectId(id) };
+      const classDetails = await classCollection.findOne(query);
+      res.send(classDetails);
+    });
+    
     
 
 
