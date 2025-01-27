@@ -3,6 +3,7 @@ const app = express();
 const cors = require('cors')
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
+const stripe = require('stripe')(process.env.SRIPE_SECRET_KEY);
 const port = process.env.PORT | 5000;
 
 // middleWare
@@ -34,6 +35,7 @@ async function run() {
     const assignmentCollection = client.db("eduLoopDb").collection("assignment");
     const submissionCollection = client.db("eduLoopDb").collection("submission");
     const feedbackCollection = client.db('eduLoopDb').collection('feedback');
+    const paymentCollection = client.db('eduLoopDb').collection('payment');
 
     // jwt related api
     app.post('/jwt', async (req, res) => {
@@ -300,6 +302,53 @@ async function run() {
       const classDetails = await classCollection.findOne(query);
       res.send(classDetails);
     });
+// My Enroll class for student dashboard
+app.get('/myEnrollClass/:email',verifyToken, async(req, res)=>{
+  const email= req.params.email;
+  if (email !== req.decoded.email) {
+    return res.status(403).send({ message: 'Forbidden access' });
+  }
+  const query={studentEmail: email};
+  const enrolledClass = await paymentCollection.find(query).toArray();
+  res.send(enrolledClass);
+} ) 
+
+
+
+
+    
+// Payment intent
+app.post('/create-payment-intent', async(req, res)=>{
+  const {price} =req.body;
+  const amount =parseInt(price*100);
+  const paymentIntent =await stripe.paymentIntents.create({
+    amount:amount,
+    currency: 'usd',
+    payment_method_types:['card']
+
+  });
+  res.send({
+    clientSecret: paymentIntent.client_secret
+  })
+
+})
+// Store Payment Info
+app.post('/payments',async (req, res) => {
+  const payment= req.body;
+  const paymentResult = await paymentCollection.insertOne(payment);
+  res.send(paymentResult);
+
+});
+// // Get payment Data
+// app.post('/payments/:id',async (req, res) => {
+//   const id = req.params.id;
+//   const query= {id: new ObjectId(id)}
+//   const paymentResult = await paymentCollection.findOne(query).toArray();
+//   res.send(paymentResult);
+
+// });
+
+
 // teacher see class details by id
     app.get('/classDetails/:id', verifyToken, async (req, res) => {
       const id = req.params.id;
@@ -309,13 +358,21 @@ async function run() {
     
       res.send({ classDetails, assignments, totalSubmissions });
     });
+
     // Post assignment by teacher
     app.post('/assignments', verifyToken, async (req, res) => {
       const assignment = req.body;
       const result = await assignmentCollection.insertOne(assignment);
       res.send(result);
     });
-    
+    // get class assignment data 
+    app.get('/assignments/:id', async (req, res) => {
+      const id=req.params.id;
+      const assignments = await assignmentCollection.find({ classId: id }).toArray();
+      res.send(assignments);
+  });
+  
+  
     
 
 
