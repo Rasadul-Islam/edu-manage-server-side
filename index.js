@@ -200,7 +200,7 @@ async function run() {
       const result = await teacherRequestsCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
-    
+
 
 
 
@@ -213,7 +213,7 @@ async function run() {
 
     // Class related api
     //Get all class
-    app.get('/classes',verifyToken, async (req, res) => {
+    app.get('/classes', verifyToken, async (req, res) => {
       const result = await classCollection.find().toArray();
       res.send(result);
     })
@@ -237,6 +237,21 @@ async function run() {
       const result = await classCollection.insertOne(classes);
       res.send(result)
     })
+
+    // Increment enrollmentCount
+    app.patch('/update-enrollment/:id', async (req, res) => {
+      const { id } = req.params;
+      try {
+        const filter = { _id: new ObjectId(id) };
+        const update = { $inc: { enrollmentCount: 1 } }; // Increment enrollmentCount by 1
+        const result = await classCollection.updateOne(filter, update);
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ message: 'Error updating enrollment count', error });
+      }
+    });
+
+
     // Get classes by Email
     app.get('/classes/:email', verifyToken, async (req, res) => {
       const email = req.params.email;
@@ -295,67 +310,67 @@ async function run() {
     });
 
 
-// enroll class details api
+    // enroll class details api
     app.get('/enrollClass/:id', async (req, res) => {
       const { id } = req.params;
-      const query={ _id: new ObjectId(id) };
+      const query = { _id: new ObjectId(id) };
       const classDetails = await classCollection.findOne(query);
       res.send(classDetails);
     });
-// My Enroll class for student dashboard
-app.get('/myEnrollClass/:email',verifyToken, async(req, res)=>{
-  const email= req.params.email;
-  if (email !== req.decoded.email) {
-    return res.status(403).send({ message: 'Forbidden access' });
-  }
-  const query={studentEmail: email};
-  const enrolledClass = await paymentCollection.find(query).toArray();
-  res.send(enrolledClass);
-} ) 
+    // My Enroll class for student dashboard
+    app.get('/myEnrollClass/:email', verifyToken, async (req, res) => {
+      const email = req.params.email;
+      if (email !== req.decoded.email) {
+        return res.status(403).send({ message: 'Forbidden access' });
+      }
+      const query = { studentEmail: email };
+      const enrolledClass = await paymentCollection.find(query).toArray();
+      res.send(enrolledClass);
+    })
 
 
 
 
-    
-// Payment intent
-app.post('/create-payment-intent', async(req, res)=>{
-  const {price} =req.body;
-  const amount =parseInt(price*100);
-  const paymentIntent =await stripe.paymentIntents.create({
-    amount:amount,
-    currency: 'usd',
-    payment_method_types:['card']
 
-  });
-  res.send({
-    clientSecret: paymentIntent.client_secret
-  })
+    // Payment intent
+    app.post('/create-payment-intent', async (req, res) => {
+      const { price } = req.body;
+      const amount = parseInt(price * 100);
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: 'usd',
+        payment_method_types: ['card']
 
-})
-// Store Payment Info
-app.post('/payments',async (req, res) => {
-  const payment= req.body;
-  const paymentResult = await paymentCollection.insertOne(payment);
-  res.send(paymentResult);
+      });
+      res.send({
+        clientSecret: paymentIntent.client_secret
+      })
 
-});
-// // Get payment Data
-// app.post('/payments/:id',async (req, res) => {
-//   const id = req.params.id;
-//   const query= {id: new ObjectId(id)}
-//   const paymentResult = await paymentCollection.findOne(query).toArray();
-//   res.send(paymentResult);
+    })
+    // Store Payment Info
+    app.post('/payments', async (req, res) => {
+      const payment = req.body;
+      const paymentResult = await paymentCollection.insertOne(payment);
+      res.send(paymentResult);
 
-// });
+    });
+    // // Get payment Data
+    // app.post('/payments/:id',async (req, res) => {
+    //   const id = req.params.id;
+    //   const query= {id: new ObjectId(id)}
+    //   const paymentResult = await paymentCollection.findOne(query).toArray();
+    //   res.send(paymentResult);
+
+    // });
 
 
-// teacher see class details by id
+    // teacher see class details by id
     app.get('/classDetails/:id', verifyToken, async (req, res) => {
       const id = req.params.id;
       const classDetails = await classCollection.findOne({ _id: new ObjectId(id) });
       const assignments = await assignmentCollection.find({ classId: id }).toArray();
       const totalSubmissions = await submissionCollection.countDocuments({ classId: id });
-    
+
       res.send({ classDetails, assignments, totalSubmissions });
     });
 
@@ -367,18 +382,18 @@ app.post('/payments',async (req, res) => {
     });
     // get class assignment data 
     app.get('/assignments/:id', async (req, res) => {
-      const id=req.params.id;
+      const id = req.params.id;
       const assignments = await assignmentCollection.find({ classId: id }).toArray();
       res.send(assignments);
-  });
-  // Post assignment submission
-  app.post('/assignment/submit', verifyToken, async (req, res) => {
-    const submission = req.body;
-    const result = await submissionCollection.insertOne(submission);
-    res.send(result);
-  });
-  
-    
+    });
+    // Post assignment submission
+    app.post('/assignment/submit', verifyToken, async (req, res) => {
+      const submission = req.body;
+      const result = await submissionCollection.insertOne(submission);
+      res.send(result);
+    });
+
+
 
 
 
@@ -391,9 +406,9 @@ app.post('/payments',async (req, res) => {
       res.send(result);
     })
     // Post feedback
-    app.post('/feedback', verifyToken, async(req, res)=>{
+    app.post('/feedback', verifyToken, async (req, res) => {
       const feedback = req.body;
-      const result =await feedbackCollection.insertOne(feedback);
+      const result = await feedbackCollection.insertOne(feedback);
       res.send(result);
     })
 
