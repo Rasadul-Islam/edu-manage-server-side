@@ -371,7 +371,12 @@ app.post('/payments',async (req, res) => {
       const assignments = await assignmentCollection.find({ classId: id }).toArray();
       res.send(assignments);
   });
-  
+  // Post assignment submission
+  app.post('/assignment/submit', verifyToken, async (req, res) => {
+    const submission = req.body;
+    const result = await submissionCollection.insertOne(submission);
+    res.send(result);
+  });
   
     
 
@@ -383,6 +388,12 @@ app.post('/payments',async (req, res) => {
     // get feedback
     app.get('/feedback', async (req, res) => {
       const result = await feedbackCollection.find().toArray();
+      res.send(result);
+    })
+    // Post feedback
+    app.post('/feedback', verifyToken, async(req, res)=>{
+      const feedback = req.body;
+      const result =await feedbackCollection.insertOne(feedback);
       res.send(result);
     })
 
